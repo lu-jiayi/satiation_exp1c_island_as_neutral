@@ -1,4 +1,4 @@
-setwd("C:/Users/aldos/Desktop/directed_research_satiation")
+setwd("C:/Users/aldos/submiterator")
 library(plyr)
 library(dplyr)
 library(reshape)
@@ -65,11 +65,12 @@ trial_avg <- trial_avg[order(trial_avg$trial),]
 cum <- cumsum(trial_avg$avg) / seq_along(trial_avg$avg) 
 trial_avg$cum <- cum
 
-ggplot(trial_avg, aes(x=trial, y=avg)) + 
+a= ggplot(trial_avg, aes(x=trial, y=avg)) + 
   geom_smooth(method = lm, se = F) + geom_point()+
   theme_bw()
+
 #cum_average plot
-ggplot(trial_avg, aes(x=trial, y=cum)) + 
+b= ggplot(trial_avg, aes(x=trial, y=cum)) + 
   
   geom_smooth (se = F) + geom_point()+
   theme_bw()
@@ -83,41 +84,43 @@ data = subset(data, block_sequence != "practice")
 d=transform(data, block_sequence = as.numeric(block_sequence))
 write.csv(d,"satiation_baseline_cleaned.csv", row.names = FALSE)
 d <- read.csv("satiation_baseline_cleaned.csv")
-d$condition <- factor(d$condition, levels = c("FILL", "CNPC","SUBJ","WH"))
+d$condition <- factor(d$condition, levels = c("FILL", "CNPC","SUBJ","WH","UNGRAM"))
 
 
 #look at subset of conditions
-data = subset(data, condition !="CNPC")
-data = subset(data, condition !="SUBJ")
-data = subset(data, condition != "UNGRAM")
+#data = subset(data, condition !="CNPC")
+#data = subset(data, condition !="SUBJ")
+#data = subset(data, condition != "UNGRAM")
 #Step 6: Statistics
-model_block <- lmer(response~block_sequence*condition + (1+block_sequence*condition|workerid)+(1+condition|item_number), data = d)
-summary(model_block)
+#model_block <- lmer(response~block_sequence*condition + (1+block_sequence*condition|workerid)+(1+condition|item_number), data = d)
+#summary(model_block)
 #data$condition <- factor(data$condition, levels = c("FILL", "CNPC","SUBJ","WH"))
+
+d_new <- subset(d, condition != "UNGRAM")
 model_global2 <- lmer(response~trial_sequence_total*condition + 
-                        (1+trial_sequence_total*condition|workerid)+(1+trial_sequence_total*condition|item_number), data = d)
+                       (1+trial_sequence_total*condition|workerid)+(1+trial_sequence_total*condition|item_number), data = d_new)
 summary(model_global2)
-
-
-model_global3 <- brm(response~trial_sequence_total*condition + 
-                       (1+trial_sequence_total*condition|workerid)+(1+trial_sequence_total*condition|item_number), data = d)
-summary(model_global3)
+#model_global3 <- brm(response~trial_sequence_total*condition + 
+#                       (1+trial_sequence_total*condition|workerid)+(1+trial_sequence_total*condition|item_number), data = d)
+#summary(model_global3)
 
 #power analysis
-model_ext_class <- extend(model_global2, along="workerid", n=150)
-model_ext_class
-p_curve_treat <- powerCurve(model_ext_class, nsim=10, test = fcompare(response~trial_sequence_total*condition), along="workerid", breaks=c(50,100,150))
-plot(p_curve_treat)
-powerSim(model_global2, test=fcompare(response~trial_sequence_total*condition))
+#model_ext_class <- extend(model_global2, along="workerid", n=150)
+
+#model_ext_class
+#p_curve_treat <- powerCurve(model_ext_class, nsim=10, test = fcompare(response~trial_sequence_total*condition), along="workerid", breaks=c(50,100,150))
+#plot(p_curve_treat)
+#powerSim(model_global2, test=fcompare(response~trial_sequence_total*condition))
 
 #overall plot:
-ggplot(d, aes(x=trial_sequence_total, y=response, color = condition, shape = condition)) + 
+c= ggplot(d, aes(x=trial_sequence_total, y=response, color = condition, shape = condition)) + 
   geom_point() + 
   geom_smooth(method=lm, aes(fill=condition))+theme_bw()
 
+c
 #by-subject Plot
 ggplot(d, aes(x=trial_sequence_total, y=response, color = condition, shape = condition)) + 
   geom_point() + 
   geom_smooth(method=lm, aes(fill=condition))+facet_wrap(~workerid)
-ggsave("subject_variability.pdf", width=20, height = 25)
+ggsave("subject_variability_1c.pdf", width=20, height = 25)
 
