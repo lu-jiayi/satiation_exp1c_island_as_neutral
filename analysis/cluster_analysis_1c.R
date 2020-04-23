@@ -81,11 +81,14 @@ for (i in data$workerid){
   
 }
 
+
 all_vec_features = all_vec
 all_vec_features$workerid <- NULL
-results<-kmeans(all_vec_features, 2)
-all_vec$cluster <- results$cluster
-results
+results<-kmeans(intercept_vec, 5)
+plot(intercept_vec[c("wh_intercept",  "cnpc_intercept", "subj_intercept")], col=results$cluster)
+
+
+
 
 ##CRPClustering
 slope_vec <- all_vec_features
@@ -99,9 +102,23 @@ intercept_vec$subj_slope <- NULL
 intercept_vec$wh_slope <- NULL
 
 
+z_results_slope<- crp_gibbs(as.matrix(slope_vec),
+                            mu = c(0,0,0),
+                            iteration = 2000)
 
-z_results<- crp_gibbs(as.matrix(slope_vec),
-                      mu = c(0,0,0),
-                      iteration = 100)
+z_results_intercept<- crp_gibbs(as.matrix(intercept_vec),
+                            mu = c(0.5,0.5,0.5),
+                            iteration = 2000)
+
+z_results<- crp_gibbs(as.matrix(all_vec_features),
+                      mu = c(mean(all_vec_features$wh_intercept),
+                             mean(all_vec_features$wh_slope),
+                             mean(all_vec_features$subj_intercept),
+                             mean(all_vec_features$subj_slope),
+                             mean(all_vec_features$cnpc_intercept),
+                             mean(all_vec_features$cnpc_slope)),
+                      iteration = 2000)
+
+z_results
 
 
